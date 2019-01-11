@@ -1,0 +1,22 @@
+Domain: Retail
+
+Project: The dataset is about a Retail Store where the owner wants to know the probability of a customer making purchase at its store. The owner is also
+interested in knowing the amount a customer could spend when visiting the store.
+
+Techniques Used:
+Descriptive Statistics
+Data Exploration
+Data Preparation
+Data Manipulation
+Linear Regression
+Logistic Regression
+Decision Tree
+
+Summary:
+We will build a Decision tree classifier to predict who will be a good customer and who will be bad customer. 
+
+The way we defined the good customer and bad customer is based on the fact, how much they spend relative to the average expenditure of the total population. 
+If a person spends more than the average expenditure of the total population, then he is considered as a good customer, and if a person spends less than the 
+average expenditure of total population, he is considered as a bad customer
+
+This classification scheme is subjective and every business would turn out with their own unique classification scheme based on some business constraints.

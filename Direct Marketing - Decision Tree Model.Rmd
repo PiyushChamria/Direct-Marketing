@@ -1,0 +1,122 @@
+In order to make nice looking Decision tree plots, we will be using these three libraries; library(rattle), library(rpart.plot), and library(RColorBrewer).
+
+```{r}
+##Classification Trees using rpart()##
+library(dplyr)
+library(irr)
+library(rpart)
+library(caret)
+#Tree plotting
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+dm<-read.csv("dm.csv")
+dm%>%mutate(Target=ifelse(AmountSpent>mean(AmountSpent),1,0))->dm
+#Here 0 refers to a bad customer, and 1 refers to a good customer.  
+
+dm%>%select(-AmountSpent)->dm
+```
+
+
+#Minimal Data Prep
+#The minimal data prep here is same as Logistic Regression
+
+#minimal data preparation 
+
+```{r}
+dm$History1<-ifelse(is.na(dm$History),"Missing",as.character(dm$History))
+dm$History1<-as.factor(dm$History1)
+
+summary(dm$History1)
+
+dm$Children<-as.factor(dm$Children)
+dm$Catalogs<-as.factor(dm$Catalogs)
+
+dm<-dm[,-8]
+```
+
+#Initial Decision Tree Model
+
+```{r}
+mod<-rpart(Target~.,data=dm[,-9],control=rpart.control(cp=0.002,maxdepth=7),
+           method="class",parms=list(split="gini"))
+```
+
+```{r}
+plot(mod, margin=0.1, main="Classification Tree for Direct Marketing")
+text(mod, use.n=TRUE, all=TRUE, cex=.7)
+```
+
+```{r}
+fancyRpartPlot(mod)
+```
+
+#we now need to cut this tree at an appropriate level. In order to decide, we create a scree plot, this scree plot is created using the command 'plotcp'. 
+
+```{r}
+printcp(mod)
+plotcp(mod, minline = TRUE)
+```
+
+```{r}
+mod1<-prune(mod,cp= 0.035)
+
+fancyRpartPlot(mod1)
+```
+
+
+#Rules derivation
+
+```{r}
+mod1
+```
+#node4
+#if history1={Low,Medium,Missing} and Salary < 58650, then 0 (bad) 
+#If History1={low,medium,missing}.... excel sheet
+
+#Confusion Matrix
+
+```{r}
+actual<-dm$Target
+predicted<-predict(mod1,type = "class")
+
+head(predicted)
+```
+
+```{r}
+head(as.numeric(predicted))
+
+predicted<-as.numeric(predicted)
+predicted<-ifelse(predicted==2,1,0)
+
+confusionMatrix(predicted,actual,positive="1")
+```
+
+#kappa metric
+
+```{r}
+kappa2(data.frame(actual,predicted))
+```
+
+
+#ROC curve analysis
+
+```{r}
+library(ROCR)
+pred<-prediction(actual,predicted)
+perf<-performance(pred,"tpr","fpr")
+plot(perf,col="red")
+abline(0,1, lty = 8, col = "grey")
+```
+
+```{r}
+auc<-performance(pred,"auc")
+auc
+```
+
+```{r}
+unlist(auc@y.values)
+```
+I am unlisting the slot y.values in the object auc and my area under curve is 0.87.
+AUC above 0.6 implies that I have a good classification model.
